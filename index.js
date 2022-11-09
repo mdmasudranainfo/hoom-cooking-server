@@ -63,6 +63,14 @@ const run = () => {
       const result = await cursor.toArray();
       res.send(result);
     });
+    // get single review
+    app.get("/review/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const service = await reviewCollection.findOne(query);
+      res.send(service);
+    });
+    // ...........
 
     //get review email........
     app.get("/reviews", async (req, res) => {
@@ -81,6 +89,28 @@ const run = () => {
       const query = { _id: ObjectId(id) };
       const result = await reviewCollection.deleteOne(query);
       res.send(result);
+    });
+    // update review
+    app.put("/update/:id", async (req, res) => {
+      const id = req.params.id;
+      // const message = req.body;
+      const filter = { _id: ObjectId(id) };
+      const user = req.body;
+      const option = { upsert: true };
+
+      const updateUser = {
+        $set: {
+          massege: user.message,
+        },
+      };
+
+      const updateReview = await reviewCollection.updateOne(
+        filter,
+        updateUser,
+        option
+      );
+
+      res.send(updateReview);
     });
 
     // end.................
