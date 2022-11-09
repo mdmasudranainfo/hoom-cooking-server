@@ -23,6 +23,12 @@ const reviewCollection = client.db("home-cookin").collection("review");
 
 const run = () => {
   try {
+    // post service....
+    app.post("/service", async (req, res) => {
+      const product = req.body;
+      const result = await serviceCollection.insertOne(product);
+      res.send(result);
+    });
     // 3 service
     app.get("/service3", async (req, res) => {
       const query = {};
