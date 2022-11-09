@@ -6,6 +6,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
+app.use(express.json());
 
 // mongodb file
 
@@ -18,6 +19,7 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 const serviceCollection = client.db("home-cookin").collection("service");
+const reviewCollection = client.db("home-cookin").collection("review");
 
 const run = () => {
   try {
@@ -44,6 +46,26 @@ const run = () => {
 
       res.send(cursor);
     });
+    // post review......
+    app.post("/review", async (req, res) => {
+      const riview = req.body;
+      console.log(riview);
+      const cursor = await reviewCollection.insertOne(riview);
+      res.send(cursor);
+    });
+    //get review........
+    app.get("/review", async (req, res) => {
+      let query = {};
+      if (req.query.serviceID) {
+        query = { serviceID: req.query.serviceID };
+      }
+
+      const cursor = await reviewCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // end.................
   } finally {
   }
   //
