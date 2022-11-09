@@ -12,7 +12,7 @@ app.use(express.json());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.9ybk3ec.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -49,19 +49,37 @@ const run = () => {
     // post review......
     app.post("/review", async (req, res) => {
       const riview = req.body;
-      console.log(riview);
+
       const cursor = await reviewCollection.insertOne(riview);
       res.send(cursor);
     });
-    //get review........
+    //get review servicesID........
     app.get("/review", async (req, res) => {
       let query = {};
       if (req.query.serviceID) {
         query = { serviceID: req.query.serviceID };
       }
-
       const cursor = await reviewCollection.find(query);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    //get review email........
+    app.get("/reviews", async (req, res) => {
+      let query = {};
+      if (req.query.email) {
+        query = { email: req.query.email };
+      }
+      const cursor = await reviewCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // delete
+    app.delete("/delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await reviewCollection.deleteOne(query);
       res.send(result);
     });
 
