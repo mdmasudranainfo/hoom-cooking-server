@@ -4,6 +4,8 @@ require("dotenv").config();
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
+jwt = require("jsonwebtoken");
+
 // middleware
 app.use(cors());
 app.use(express.json());
@@ -20,9 +22,37 @@ const client = new MongoClient(uri, {
 });
 const serviceCollection = client.db("home-cookin").collection("service");
 const reviewCollection = client.db("home-cookin").collection("review");
-
+// ...........
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res
+      .status(401)
+      .send({ message: "tore ami chini nh,tore dimu nh kono data" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (error, decoded) {
+    if (error) {
+      return res
+        .status(401)
+        .send({ message: "tore ami chini nh,tore dimu nh kono data" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+// ............
 const run = () => {
   try {
+    // // JWT
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      console.log(user.email);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
+        expiresIn: "1d",
+      });
+      res.send({ token });
+    });
     // post service....
     app.post("/service", async (req, res) => {
       const product = req.body;
@@ -65,6 +95,7 @@ const run = () => {
       if (req.query.serviceID) {
         query = { serviceID: req.query.serviceID };
       }
+      // var mysort = { timeDate: 1 };
       const cursor = await reviewCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
@@ -73,14 +104,21 @@ const run = () => {
     app.get("/review/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
+
       const service = await reviewCollection.findOne(query);
       res.send(service);
     });
     // ...........
 
     //get review email........
-    app.get("/reviews", async (req, res) => {
+    app.get("/reviews", verifyJWT, async (req, res) => {
+      const decoded = req.decoded;
+      if (decoded.email !== req.query.email) {
+        res.send({ message: "tore ami chini nh,tore dimu nh kono data" });
+      }
+
       let query = {};
+
       if (req.query.email) {
         query = { email: req.query.email };
       }
