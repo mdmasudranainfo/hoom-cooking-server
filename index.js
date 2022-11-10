@@ -95,7 +95,7 @@ const run = () => {
       if (req.query.serviceID) {
         query = { serviceID: req.query.serviceID };
       }
-      // var mysort = { timeDate: 1 };
+
       const cursor = await reviewCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
